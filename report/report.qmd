@@ -1,0 +1,134 @@
+---
+title: "Stats + Stories 300th Episode Special"
+author: "Jessica Hoehner"
+format: html
+editor: visual
+---
+
+## Which are the most popular...
+
+```{r importchunk}
+#| echo: false
+
+# Load libraries ----
+
+pacman::p_load("here", "tidyverse", "readr", 
+               "ggplot2", "forcats", "glue", 
+               "ggiraph", "viridis")
+
+# input data location
+input_data <- here("clean/output/cleaned_data.rds")
+
+# output location
+output_data <- here("report/output/")
+
+# read in data
+clean_df <- read_rds(input_data) 
+
+```
+
+Categories
+
+```{r categories}
+#| echo: false
+#| message: false
+
+top_5_cats <- clean_df %>%
+  group_by(release_year, category) %>%
+  reframe(listens_num = sum(listens_num)) %>%
+  filter(listens_num > 10000) %>%
+  arrange(desc(listens_num)) %>%
+  distinct(category) %>%
+  head(n=5) %>%
+  mutate(category_num = as.character((row_number(category))))
+  
+cats <- clean_df %>%
+  mutate(release_year = as.character(release_year)) %>%
+  group_by(release_year, category) %>%
+  reframe(listens_num = sum(listens_num)) %>%
+  mutate(tooltip = 
+           glue::glue("{category}: {scales::comma(listens_num)}")) %>%
+  left_join(., top_5_cats) %>%
+  mutate(category_num = if_else(is.na(category_num) == TRUE, "6", 
+                                category_num)) %>%
+  ggplot(aes(release_year, listens_num)) +
+  geom_point_interactive(
+    aes(color = category_num, size = listens_num, 
+        tooltip = tooltip, alpha = 0.7)) +
+  scale_color_manual(values = c("5" = "#d73027",
+                                "4" = "#fc8d59", 
+                                "3" = "#fee090", 
+                                "2" = "#7fbf7b",
+                                "1" = "#4575b4", 
+                                "6" = "#f0f0f0")) +
+  theme_classic() +
+  theme(
+    panel.spacing = unit(1, "picas"),
+    legend.position = "none",
+    axis.text.y = element_blank(), 
+    axis.line = element_blank(), 
+    axis.ticks = element_blank()) +
+   labs(x = NULL,
+        y = NULL,
+       title = glue("Society, Methods, Health, Media, and Education"),
+       caption = glue("Notes: Categories are sized by number of listeners each year"))
+
+girafe(code = {print(cats)})
+
+```
+
+Formats
+
+```{r formats}
+
+# top_5_fmts <- clean_df %>%
+#   group_by(release_year, category) %>%
+#   reframe(listens_num = sum(listens_num)) %>%
+#   filter(listens_num > 10000) %>%
+#   arrange(desc(listens_num)) %>%
+#   distinct(category) %>%
+#   head(n=5) %>%
+#   mutate(category_num = as.character((row_number(category))))
+#   
+# cats <- clean_df %>%
+#   mutate(release_year = as.character(release_year)) %>%
+#   group_by(release_year, category) %>%
+#   reframe(listens_num = sum(listens_num)) %>%
+#   mutate(tooltip = 
+#            glue::glue("{category}: {scales::comma(listens_num)}")) %>%
+#   left_join(., top_5_cats) %>%
+#   mutate(category_num = if_else(is.na(category_num) == TRUE, "6", 
+#                                 category_num)) %>%
+#   ggplot(aes(release_year, listens_num)) +
+#   geom_point_interactive(
+#     aes(color = category_num, size = listens_num, 
+#         tooltip = tooltip, alpha = 0.7)) +
+#   scale_color_manual(values = c("5" = "#d73027",
+#                                 "4" = "#fc8d59", 
+#                                 "3" = "#fee090", 
+#                                 "2" = "#7fbf7b",
+#                                 "1" = "#4575b4", 
+#                                 "6" = "#f0f0f0")) +
+#   theme_classic() +
+#   theme(
+#     panel.spacing = unit(1, "picas"),
+#     legend.position = "none",
+#     axis.text.y = element_blank(), 
+#     axis.line = element_blank(), 
+#     axis.ticks = element_blank()) +
+#    labs(x = NULL,
+#         y = NULL,
+#        title = glue("Society, Methods, Health, Media, and Education"),
+#        caption = glue("Notes: Categories are sized by number of listeners each year"))
+# 
+# girafe(code = {print(cats)})
+```
+
+Guests
+
+Does listenership vary by number of guests?
+
+```{r nguests}
+
+2 * 2
+```
