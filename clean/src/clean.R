@@ -44,10 +44,8 @@ clean_df <- raw_df %>%
     host_num = case_when(
       (is.na(host_3) == TRUE & is.na(host_2) == TRUE) ~ 1,
       (is.na(host_3) == TRUE & is.na(host_2) == FALSE) ~ 2,
-      is.na(host_3) == FALSE ~ 3), 
-    #episode_text = as.character(str_c(title, description, sep = " "))
-    ) %>%
-  select(release_date, release_year, episode_num, category, format, 
+      is.na(host_3) == FALSE ~ 3)) %>%
+  select(title, release_date, release_year, episode_num, category, format, 
          listens_num, guest_1, guest_2, guest_3, guest_num, 
          starts_with("host_"), length)
 
