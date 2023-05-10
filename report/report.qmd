@@ -76,53 +76,73 @@ cats <- clean_df %>%
 girafe(code = {print(cats)})
 
 ```
+Neat! It looks like listeners especially enjoy episodes in the categories of "Society", "Health", and "Methods". Let's dig deeper into the patterns within a few of these categories. 
 
-Formats
+Which are the most popular episodes in each category by each year?
 
-```{r formats}
+```{r cats_2}
+#| echo: false
+#| message: false
+#| fig-width: 12
 
-# top_5_fmts <- clean_df %>%
-#   group_by(release_year, category) %>%
-#   reframe(listens_num = sum(listens_num)) %>%
-#   filter(listens_num > 10000) %>%
-#   arrange(desc(listens_num)) %>%
-#   distinct(category) %>%
-#   head(n=5) %>%
-#   mutate(category_num = as.character((row_number(category))))
-#   
-# cats <- clean_df %>%
-#   mutate(release_year = as.character(release_year)) %>%
-#   group_by(release_year, category) %>%
-#   reframe(listens_num = sum(listens_num)) %>%
-#   mutate(tooltip = 
-#            glue::glue("{category}: {scales::comma(listens_num)}")) %>%
-#   left_join(., top_5_cats) %>%
-#   mutate(category_num = if_else(is.na(category_num) == TRUE, "6", 
-#                                 category_num)) %>%
-#   ggplot(aes(release_year, listens_num)) +
-#   geom_point_interactive(
-#     aes(color = category_num, size = listens_num, 
-#         tooltip = tooltip, alpha = 0.7)) +
-#   scale_color_manual(values = c("5" = "#d73027",
-#                                 "4" = "#fc8d59", 
-#                                 "3" = "#fee090", 
-#                                 "2" = "#7fbf7b",
-#                                 "1" = "#4575b4", 
-#                                 "6" = "#f0f0f0")) +
-#   theme_classic() +
-#   theme(
-#     panel.spacing = unit(1, "picas"),
-#     legend.position = "none",
-#     axis.text.y = element_blank(), 
-#     axis.line = element_blank(), 
-#     axis.ticks = element_blank()) +
-#    labs(x = NULL,
-#         y = NULL,
-#        title = glue("Society, Methods, Health, Media, and Education"),
-#        caption = glue("Notes: Categories are sized by number of listeners each year"))
-# 
-# girafe(code = {print(cats)})
+top_eps <- clean_df %>%
+    filter(category %in% c("Society", "Health", "Methods")) %>%
+  group_by(release_year, category, title) %>%
+  reframe(listens_num = sum(listens_num)) %>%
+  group_by(release_year, category) %>%
+  slice(which.max(listens_num)) %>%
+  mutate(release_year = as.character(release_year), 
+         top_ep = case_when(
+            category == "Society" ~ "1",
+            category == "Methods" ~ "2",
+            category == "Health" ~ "3"))
+
+eps <- clean_df %>%
+  mutate(release_year = as.character(release_year)) %>%
+  group_by(release_year, category, title) %>%
+  reframe(listens_num = sum(listens_num)) %>%
+  filter(category %in% c("Society", "Health", "Methods")) %>%
+  mutate(tooltip =
+           glue::glue("{title}: {scales::comma(listens_num)}")) %>%
+  left_join(., top_eps) %>%
+  mutate(top_ep = if_else(is.na(top_ep) == TRUE, "6", top_ep), 
+         category = factor(category, levels = c("Society", 
+                                                "Health", 
+                                                "Methods"))) %>%
+  ggplot(aes(release_year, listens_num)) +
+  geom_point_interactive(
+    aes(color = top_ep, size = listens_num,
+        tooltip = tooltip, alpha = 0.7)) +
+  facet_wrap(~category, scales = "fixed") +
+  scale_color_manual(values = c("1" = "#d73027",
+                                  "2" = "#fc8d59", 
+                                  "3" = "#7fbf7b",
+                                  "6" = "#f0f0f0")) +
+    scale_x_discrete(breaks = c("2013", "2015", "2017", "2019", 
+                                "2021", "2023")) +
+  theme_classic() +
+  theme(
+    panel.spacing = unit(1, "picas"),
+    legend.position = "none",
+    axis.text.y = element_blank(),
+    axis.line = element_blank(),
+    axis.ticks = element_blank()) +
+   labs(x = NULL,
+        y = NULL,
+       title = glue(""),
+       caption = glue("Notes: Categories are sized by number of listeners each year"))
+
+girafe(code = {print(eps)})
 ```
+
+We can see that the "Society" category has been part of the show since 2014. These episodes have been consistently popular since their introduction and have grown steadily in popularity from 2017-2022 with the show overall. The most popular episode in this category overall was "The Data Economy" on January 6th 2022 which was a long format show which ran just over 31 minutes hosted by John and Brian with guest Timandra Harkness[http://timandraharkness.com/]. It makes sense that having a professional presenter/host and comedian would make for a popular episode!
+
+There have been fewer episodes in the "Health" category over the course of the show and it seems like there was an understandable increase of episodes in this catgeory in 2019 with the most popular 
+
+
+
+
+
 
 Guests
 
